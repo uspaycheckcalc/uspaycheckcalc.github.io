@@ -192,6 +192,7 @@ def index_html():
         f"{SITE_NAME} - Estimate Your Take-Home Pay by State",
         "Free US paycheck calculator: estimate take-home pay after federal tax, FICA, and state income tax for 15 major states.",
         body,
+        extra_head='<meta name="naver-site-verification" content="38045222708a3b17b60bc932bd8fd8b63be1b2e4" />',
     )
 
 
