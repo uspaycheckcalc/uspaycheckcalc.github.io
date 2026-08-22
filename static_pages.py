@@ -35,6 +35,18 @@ FOOTER_NAV = """
 
 FAVICON = '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%92%B5%3C/text%3E%3C/svg%3E">'
 
+
+def money_icon(size=72):
+    """Small original inline-SVG banknote icon (no external assets, no licensing concerns)."""
+    return f"""<svg width="{size}" height="{size}" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect x="5" y="19" width="62" height="35" rx="7" fill="var(--primary)"/>
+  <rect x="5.5" y="19.5" width="61" height="34" rx="6.5" fill="none" stroke="var(--primary-dark)" stroke-width="1"/>
+  <circle cx="16" cy="28" r="2" fill="#ffffff" fill-opacity="0.55"/>
+  <circle cx="56" cy="45" r="2" fill="#ffffff" fill-opacity="0.55"/>
+  <circle cx="36" cy="36.5" r="11" fill="#ffffff" fill-opacity="0.92"/>
+  <text x="36" y="42" font-size="15" font-weight="800" fill="var(--primary)" text-anchor="middle" font-family="-apple-system,sans-serif">$</text>
+</svg>"""
+
 SITE_HEADER = """
   <header class="site-header">
     <a href="index.html" class="brand">\U0001F4B5 US Paycheck Calculator</a>
@@ -66,6 +78,9 @@ SITE_STYLE = """
   .site-nav { display: flex; gap: 2px; flex-wrap: wrap; }
   .site-nav a { font-size: 13px; color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 999px; }
   .site-nav a:hover { background: #eef2ff; color: var(--primary); }
+
+  .hero-icon { margin-bottom: 4px; }
+  .hero-icon.small { margin-bottom: 2px; }
 
   h1 { font-size: 23px; margin-bottom: 8px; }
   h2 { font-size: 16px; margin-top: 28px; }

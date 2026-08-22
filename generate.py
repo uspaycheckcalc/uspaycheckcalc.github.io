@@ -15,7 +15,7 @@ from state_data import STATES, STATE_ORDER
 from percentile_data import NATIONAL_INCOME_PERCENTILES, STATE_MEDIAN_HOUSEHOLD_INCOME
 import federal_data
 from static_pages import (
-    about_html, privacy_html, contact_html,
+    about_html, privacy_html, contact_html, money_icon,
     SITE_NAME, GA_SNIPPET, FOOTER_NAV, SITE_STYLE, SITE_HEADER, FAVICON,
 )
 
@@ -216,6 +216,7 @@ def index_html():
         f'<li><a href="{state_slug(key)}">{STATES[key]["name"]}</a></li>' for key in STATE_ORDER
     )
     body = f"""
+  <div class="hero-icon">{money_icon(72)}</div>
   <h1>US Paycheck Calculator</h1>
   <p>Estimate your take-home pay after federal tax, Social Security, Medicare, and state income tax.
   Pick a state and enter your gross annual salary below.</p>
@@ -257,6 +258,7 @@ def state_hub_html(state_key):
     note_html = f'<p class="source">{state["note"]}</p>' if state.get("note") else ""
 
     body = f"""
+  <div class="hero-icon small">{money_icon(44)}</div>
   <h1>{state['name']} Paycheck Calculator</h1>
   <p>{tax_type_desc} Enter your gross annual salary to estimate your {state['name']} take-home pay.</p>
 
