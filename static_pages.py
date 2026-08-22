@@ -10,7 +10,7 @@ CONTACT_EMAIL with a real contact address.
 SITE_NAME = "US Paycheck Calculator"
 CONTACT_EMAIL = "contact@yourdomain.com"
 
-ADSENSE_CLIENT = "ca-pub-XXXXXXXXXXXXXXXX"
+ADSENSE_CLIENT = "ca-pub-5607384951754093"
 
 GA_SNIPPET = f"""<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-8BDHP29X64"></script>
