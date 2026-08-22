@@ -1,17 +1,19 @@
 """
 Generates all pages for the US Paycheck Calculator site:
-  - index.html            national live calculator + links to all 15 state hub pages
+  - index.html            national live calculator + a clickable 50-state map + a curated 15-state list
   - {state}.html           per-state hub: live calculator preset to that state + links to its salary presets
   - {state}-{N}k-paycheck-calculator.html   static preset detail page for one state+salary combo
 
-Programmatic-SEO scope: 15 states (by population rank) x 14 salary points ($20k-$150k, $10k steps) =
-210 detail pages, matching real search patterns (round salary numbers) rather than dense presets.
+Programmatic-SEO scope: all 50 states x 14 salary points ($20k-$150k, $10k steps) = 700 detail pages,
+matching real search patterns (round salary numbers) rather than dense presets. The homepage's
+"Browse by state" list stays limited to the original curated 15 (by population rank) to avoid a
+cluttered 50-item list - the state map is the way to reach the rest.
 """
 import json
 import os
 
 from calc import calculate, income_percentile, household_income_comparison
-from state_data import STATES, STATE_ORDER
+from state_data import STATES, STATE_ORDER, ALL_STATE_ORDER, MAP_STATES
 from percentile_data import NATIONAL_INCOME_PERCENTILES, STATE_MEDIAN_HOUSEHOLD_INCOME
 import federal_data
 from static_pages import (
@@ -144,7 +146,7 @@ def calculator_box_html(default_state_key, fixed_state=False):
     else:
         options = "\n".join(
             f'<option value="{key}"{" selected" if key == default_state_key else ""}>{STATES[key]["name"]}</option>'
-            for key in STATE_ORDER
+            for key in ALL_STATE_ORDER
         )
         state_field = f"""<div class="field">
       <label for="state">State</label>
@@ -170,6 +172,44 @@ def calculator_box_html(default_state_key, fixed_state=False):
       <div class="compare-row" id="r-household">-</div>
     </div>
   </div>"""
+
+
+MAP_TILE = 40
+MAP_GAP = 4
+MAP_PITCH = MAP_TILE + MAP_GAP
+MAP_COLORS = {"none": "#16a34a", "flat": "var(--primary)", "progressive": "#7c3aed"}
+MAP_LEGEND_LABELS = {"none": "No state income tax", "flat": "Flat tax rate", "progressive": "Progressive (bracketed) tax"}
+
+
+def us_map_svg():
+    tiles = []
+    for key, m in MAP_STATES.items():
+        state = STATES[key]
+        x, y = m["col"] * MAP_PITCH, m["row"] * MAP_PITCH
+        fill = MAP_COLORS[state["type"]]
+        tiles.append(
+            f'<a href="{state_slug(key)}"><g><title>{state["name"]}: {MAP_LEGEND_LABELS[state["type"]]}</title>'
+            f'<rect x="{x}" y="{y}" width="{MAP_TILE}" height="{MAP_TILE}" rx="6" fill="{fill}"></rect>'
+            f'<text x="{x + MAP_TILE / 2:.0f}" y="{y + MAP_TILE / 2 + 4:.0f}" text-anchor="middle" '
+            f'font-size="11" font-weight="700" fill="#ffffff">{m["abbr"]}</text></g></a>'
+        )
+
+    width = (max(m["col"] for m in MAP_STATES.values()) + 1) * MAP_PITCH - MAP_GAP
+    height = (max(m["row"] for m in MAP_STATES.values()) + 1) * MAP_PITCH - MAP_GAP
+
+    legend = "".join(
+        f'<span><i class="map-swatch" style="background:{color}"></i> {MAP_LEGEND_LABELS[key]}</span>'
+        for key, color in MAP_COLORS.items()
+    )
+
+    return f"""
+  <div class="us-map-wrap">
+    <svg viewBox="0 0 {width} {height}" class="us-map" xmlns="http://www.w3.org/2000/svg">
+      {''.join(tiles)}
+    </svg>
+    <div class="map-legend">{legend}</div>
+  </div>
+"""
 
 
 DISCLAIMER = """
@@ -223,22 +263,26 @@ def index_html():
 
   {calculator_box_html("california")}
 
-  <h2>Browse by state</h2>
+  <h2>All 50 states</h2>
+  <p>Click any state for its paycheck calculator and common salary breakdowns.</p>
+  {us_map_svg()}
+
+  <h2>Popular states</h2>
   <ul class="division-list">
   {state_links}
   </ul>
 
   <div class="explain">
     <h2>What's included</h2>
-    <p>This calculator covers the 15 most populous US states, including the nine states with no
-    wage income tax (Texas, Florida, Washington, and others) alongside flat-tax and progressive-tax
-    states. See each state's page for salary-specific breakdowns.</p>
+    <p>This calculator covers all 50 states, including the nine states with no wage income tax
+    (Texas, Florida, Washington, and others) alongside flat-tax and progressive-tax states. See
+    each state's page for salary-specific breakdowns.</p>
   </div>
 {DISCLAIMER}
 """
     return page_shell(
         f"{SITE_NAME} - Estimate Your Take-Home Pay by State",
-        "Free US paycheck calculator: estimate take-home pay after federal tax, FICA, and state income tax for 15 major states.",
+        "Free US paycheck calculator: estimate take-home pay after federal tax, FICA, and state income tax for all 50 states.",
         body,
         extra_head='<meta name="naver-site-verification" content="38045222708a3b17b60bc932bd8fd8b63be1b2e4" />',
     )
@@ -343,7 +387,7 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     valid_filenames = {"index.html", "about.html", "privacy.html", "contact.html", "sitemap.xml", "ads.txt"}
-    for key in STATE_ORDER:
+    for key in ALL_STATE_ORDER:
         valid_filenames.add(state_slug(key))
         for s in SALARIES:
             valid_filenames.add(detail_slug(key, s))
@@ -358,7 +402,7 @@ def main():
         f.write(index_html())
     urls.append(f"{BASE_URL}/index.html")
 
-    for key in STATE_ORDER:
+    for key in ALL_STATE_ORDER:
         with open(os.path.join(OUTPUT_DIR, state_slug(key)), "w", encoding="utf-8") as f:
             f.write(state_hub_html(key))
         urls.append(f"{BASE_URL}/{state_slug(key)}")
