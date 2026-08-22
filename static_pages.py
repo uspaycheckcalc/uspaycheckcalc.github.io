@@ -81,6 +81,10 @@ SITE_STYLE = """
 
   .hero-icon { margin-bottom: 4px; }
   .hero-icon.small { margin-bottom: 2px; }
+  .hero-photo {
+    width: 100%; max-height: 200px; object-fit: cover; border-radius: 16px;
+    margin-bottom: 18px; display: block;
+  }
 
   h1 { font-size: 23px; margin-bottom: 8px; }
   h2 { font-size: 16px; margin-top: 28px; }

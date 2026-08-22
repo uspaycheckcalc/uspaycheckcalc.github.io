@@ -42,6 +42,10 @@
 
   .hero-icon { margin-bottom: 4px; }
   .hero-icon.small { margin-bottom: 2px; }
+  .hero-photo {
+    width: 100%; max-height: 200px; object-fit: cover; border-radius: 16px;
+    margin-bottom: 18px; display: block;
+  }
 
   h1 { font-size: 23px; margin-bottom: 8px; }
   h2 { font-size: 16px; margin-top: 28px; }
@@ -122,14 +126,7 @@
   </header>
 
 
-  <div class="hero-icon"><svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <rect x="5" y="19" width="62" height="35" rx="7" fill="var(--primary)"/>
-  <rect x="5.5" y="19.5" width="61" height="34" rx="6.5" fill="none" stroke="var(--primary-dark)" stroke-width="1"/>
-  <circle cx="16" cy="28" r="2" fill="#ffffff" fill-opacity="0.55"/>
-  <circle cx="56" cy="45" r="2" fill="#ffffff" fill-opacity="0.55"/>
-  <circle cx="36" cy="36.5" r="11" fill="#ffffff" fill-opacity="0.92"/>
-  <text x="36" y="42" font-size="15" font-weight="800" fill="var(--primary)" text-anchor="middle" font-family="-apple-system,sans-serif">$</text>
-</svg></div>
+  <img class="hero-photo" src="images/hero-dollar-bills.jpg" alt="Close-up of US dollar bills" width="900" height="200" loading="eager">
   <h1>US Paycheck Calculator</h1>
   <p>Estimate your take-home pay after federal tax, Social Security, Medicare, and state income tax.
   Pick a state and enter your gross annual salary below.</p>

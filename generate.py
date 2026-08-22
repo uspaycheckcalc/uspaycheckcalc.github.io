@@ -216,7 +216,7 @@ def index_html():
         f'<li><a href="{state_slug(key)}">{STATES[key]["name"]}</a></li>' for key in STATE_ORDER
     )
     body = f"""
-  <div class="hero-icon">{money_icon(72)}</div>
+  <img class="hero-photo" src="images/hero-dollar-bills.jpg" alt="Close-up of US dollar bills" width="900" height="200" loading="eager">
   <h1>US Paycheck Calculator</h1>
   <p>Estimate your take-home pay after federal tax, Social Security, Medicare, and state income tax.
   Pick a state and enter your gross annual salary below.</p>
