@@ -96,10 +96,20 @@ function calculatePaycheck(gross, stateKey) {{
 
 function fmtUSD(n) {{ return '$' + Math.round(n).toLocaleString('en-US'); }}
 
+function onSalaryInput(defaultState) {{
+  const el = document.getElementById('salary');
+  const cursorFromEnd = el.value.length - el.selectionStart;
+  const digits = el.value.replace(/[^0-9]/g, '');
+  el.value = digits === '' ? '' : parseInt(digits, 10).toLocaleString('en-US');
+  const pos = Math.max(el.value.length - cursorFromEnd, 0);
+  el.setSelectionRange(pos, pos);
+  calc(defaultState);
+}}
+
 function calc(defaultState) {{
   const salaryEl = document.getElementById('salary');
   const stateEl = document.getElementById('state');
-  const salary = parseFloat(salaryEl.value) || 0;
+  const salary = parseFloat((salaryEl.value || '').replace(/,/g, '')) || 0;
   const stateKey = stateEl ? stateEl.value : defaultState;
   if (salary <= 0) return;
   const r = calculatePaycheck(salary, stateKey);
@@ -145,7 +155,7 @@ def calculator_box_html(default_state_key, fixed_state=False):
     {state_field}
     <div class="field">
       <label for="salary">Annual salary (gross, $)</label>
-      <input type="number" id="salary" placeholder="e.g. 75000" oninput="calc('{default_state_key}')">
+      <input type="text" inputmode="numeric" id="salary" placeholder="e.g. 75,000" oninput="onSalaryInput('{default_state_key}')">
     </div>
     <div class="result">
       <div class="result-row"><span>Federal income tax</span><span id="r-federal">-</span></div>
