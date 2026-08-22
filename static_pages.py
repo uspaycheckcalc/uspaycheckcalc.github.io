@@ -83,6 +83,11 @@ SITE_STYLE = """
   .field input:focus, .field select:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
 
   .result { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border); }
+  .result.compare { border-top: none; padding-top: 0; margin-top: 6px; }
+  .compare-row {
+    font-size: 13px; color: var(--muted); background: #f5f3ff; border-radius: 8px;
+    padding: 9px 12px; margin-top: 8px; line-height: 1.5;
+  }
   .result-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 14px; }
   .result-row.total {
     font-weight: 800; font-size: 19px; color: var(--primary);

@@ -7,6 +7,7 @@ underlying rates and their sources - both must be refreshed annually.
 """
 import federal_data
 from state_data import STATES
+from percentile_data import NATIONAL_INCOME_PERCENTILES, STATE_MEDIAN_HOUSEHOLD_INCOME
 
 
 def bracket_tax(taxable, brackets):
@@ -42,6 +43,27 @@ def state_tax(gross_annual, state_key):
         return 0
     taxable = max(gross_annual - state["deduction"], 0)
     return bracket_tax(taxable, state["brackets"])
+
+
+def income_percentile(gross_annual):
+    """Approx. national individual-income percentile via linear interpolation (see percentile_data.py)."""
+    points = [(0, 0)] + NATIONAL_INCOME_PERCENTILES
+    if gross_annual <= 0:
+        return 0
+    if gross_annual >= points[-1][1]:
+        return 99
+    for (p0, v0), (p1, v1) in zip(points, points[1:]):
+        if v0 <= gross_annual <= v1:
+            frac = (gross_annual - v0) / (v1 - v0) if v1 != v0 else 0
+            return p0 + frac * (p1 - p0)
+    return 99
+
+
+def household_income_comparison(gross_annual, state_key):
+    """Salary vs. the state's median HOUSEHOLD income (not a same-population percentile - see percentile_data.py)."""
+    median = STATE_MEDIAN_HOUSEHOLD_INCOME[state_key]
+    pct_diff = (gross_annual - median) / median * 100
+    return median, pct_diff
 
 
 def calculate(gross_annual: float, state_key: str) -> dict:

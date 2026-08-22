@@ -10,8 +10,9 @@ Programmatic-SEO scope: 15 states (by population rank) x 14 salary points ($20k-
 import json
 import os
 
-from calc import calculate
+from calc import calculate, income_percentile, household_income_comparison
 from state_data import STATES, STATE_ORDER
+from percentile_data import NATIONAL_INCOME_PERCENTILES, STATE_MEDIAN_HOUSEHOLD_INCOME
 import federal_data
 from static_pages import (
     about_html, privacy_html, contact_html,
@@ -52,6 +53,22 @@ const SS_RATE = {federal_data.SOCIAL_SECURITY_RATE}, SS_WAGE_BASE = {federal_dat
 const MEDICARE_RATE = {federal_data.MEDICARE_RATE}, ADDL_MEDICARE_RATE = {federal_data.ADDITIONAL_MEDICARE_RATE};
 const ADDL_MEDICARE_THRESHOLD = {federal_data.ADDITIONAL_MEDICARE_THRESHOLD_SINGLE};
 const STATES = {json.dumps(states_js)};
+const NATIONAL_PERCENTILES = {json.dumps(NATIONAL_INCOME_PERCENTILES)};
+const STATE_MEDIAN_HOUSEHOLD = {json.dumps(STATE_MEDIAN_HOUSEHOLD_INCOME)};
+
+function incomePercentile(gross) {{
+  const points = [[0, 0]].concat(NATIONAL_PERCENTILES);
+  if (gross <= 0) return 0;
+  if (gross >= points[points.length - 1][1]) return 99;
+  for (let i = 0; i < points.length - 1; i++) {{
+    const [p0, v0] = points[i], [p1, v1] = points[i + 1];
+    if (gross >= v0 && gross <= v1) {{
+      const frac = v1 !== v0 ? (gross - v0) / (v1 - v0) : 0;
+      return p0 + frac * (p1 - p0);
+    }}
+  }}
+  return 99;
+}}
 
 function bracketTax(taxable, brackets) {{
   if (taxable <= 0 || !brackets.length) return 0;
@@ -92,6 +109,18 @@ function calc(defaultState) {{
   document.getElementById('r-medicare').textContent = fmtUSD(r.medicare);
   document.getElementById('r-net-annual').textContent = fmtUSD(r.netAnnual);
   document.getElementById('r-net-monthly').textContent = fmtUSD(r.netMonthly);
+
+  const pct = incomePercentile(salary);
+  document.getElementById('r-percentile').textContent =
+    (salary >= NATIONAL_PERCENTILES[NATIONAL_PERCENTILES.length - 1][1] ? 'Top 1%' : 'Top ' + Math.round(100 - pct) + '%')
+    + ' of individual earners nationwide';
+
+  const median = STATE_MEDIAN_HOUSEHOLD[stateKey];
+  const diffPct = ((salary - median) / median) * 100;
+  const state = STATES[stateKey];
+  document.getElementById('r-household').textContent =
+    fmtUSD(salary) + ' is ' + Math.abs(Math.round(diffPct)) + '% ' + (diffPct >= 0 ? 'above' : 'below')
+    + ' the ' + state.name + ' median household income (' + fmtUSD(median) + ')';
 }}
 """
 
@@ -126,6 +155,10 @@ def calculator_box_html(default_state_key, fixed_state=False):
       <div class="result-row total"><span>Net pay (annual)</span><span id="r-net-annual">-</span></div>
       <div class="result-row"><span>Net pay (monthly)</span><span id="r-net-monthly">-</span></div>
     </div>
+    <div class="result compare">
+      <div class="compare-row" id="r-percentile">-</div>
+      <div class="compare-row" id="r-household">-</div>
+    </div>
   </div>"""
 
 
@@ -135,7 +168,11 @@ DISCLAIMER = """
     or additional withholding, for the 2026 tax year. Local/city income taxes (e.g. New York City)
     and other state-specific credits are not included. Federal and state tax rates change over
     time - see the About page for details and check a recent pay stub or a tax professional for
-    exact figures.
+    exact figures.<br>
+    * The national earner percentile is estimated from Census/CPS ASEC individual income data
+    and linear interpolation between published percentile points - it is an approximation, not
+    an exact rank. The state comparison uses median <b>household</b> income (Census ACS), a
+    different population than an individual salary, shown for context only.
   </div>
 """
 
@@ -234,6 +271,9 @@ def state_hub_html(state_key):
 def detail_html(state_key, salary, prev_salary, next_salary):
     state = STATES[state_key]
     r = calculate(salary, state_key)
+    pct = income_percentile(salary)
+    pct_label = "Top 1%" if salary >= NATIONAL_INCOME_PERCENTILES[-1][1] else f"Top {round(100 - pct)}%"
+    hh_median, hh_diff = household_income_comparison(salary, state_key)
     title = f"${salary:,} Salary {state['name']} Paycheck Calculator - ${fmt(r['net_monthly'])}/mo Take-Home (2026)"
     desc = f"${salary:,} gross salary in {state['name']} nets about ${fmt(r['net_monthly'])}/month after federal tax, FICA, and state tax."
 
@@ -262,6 +302,12 @@ def detail_html(state_key, salary, prev_salary, next_salary):
   </table>
 
   <div class="nav">{nav_html}</div>
+
+  <div class="explain">
+    <h2>How does ${salary:,} compare?</h2>
+    <div class="compare-row">{pct_label} of individual earners nationwide (${salary:,} vs. the national distribution of earnings).</div>
+    <div class="compare-row">${fmt(salary)} is {abs(round(hh_diff))}% {"above" if hh_diff >= 0 else "below"} the {state['name']} median <b>household</b> income (${fmt(hh_median)}) - note this compares an individual salary to a household total, not a like-for-like percentile.</div>
+  </div>
 
   <div class="explain">
     <h2>How this is calculated</h2>

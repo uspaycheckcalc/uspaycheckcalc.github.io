@@ -56,6 +56,11 @@
   .field input:focus, .field select:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
 
   .result { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border); }
+  .result.compare { border-top: none; padding-top: 0; margin-top: 6px; }
+  .compare-row {
+    font-size: 13px; color: var(--muted); background: #f5f3ff; border-radius: 8px;
+    padding: 9px 12px; margin-top: 8px; line-height: 1.5;
+  }
   .result-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 14px; }
   .result-row.total {
     font-weight: 800; font-size: 19px; color: var(--primary);
@@ -133,6 +138,12 @@
   <div class="nav"><a href="michigan-40k-paycheck-calculator.html">&larr; $40k</a> | <a href="michigan-60k-paycheck-calculator.html">$60k &rarr;</a></div>
 
   <div class="explain">
+    <h2>How does $50,000 compare?</h2>
+    <div class="compare-row">Top 53% of individual earners nationwide ($50,000 vs. the national distribution of earnings).</div>
+    <div class="compare-row">$50,000 is 28% below the Michigan median <b>household</b> income ($69,183) - note this compares an individual salary to a household total, not a like-for-like percentile.</div>
+  </div>
+
+  <div class="explain">
     <h2>How this is calculated</h2>
     <ol class="steps">
       <li>Federal taxable income = $50,000 &minus; $16,100 standard deduction</li>
@@ -151,7 +162,11 @@
     or additional withholding, for the 2026 tax year. Local/city income taxes (e.g. New York City)
     and other state-specific credits are not included. Federal and state tax rates change over
     time - see the About page for details and check a recent pay stub or a tax professional for
-    exact figures.
+    exact figures.<br>
+    * The national earner percentile is estimated from Census/CPS ASEC individual income data
+    and linear interpolation between published percentile points - it is an approximation, not
+    an exact rank. The state comparison uses median <b>household</b> income (Census ACS), a
+    different population than an individual salary, shown for context only.
   </div>
 
 
@@ -171,6 +186,22 @@ const SS_RATE = 0.062, SS_WAGE_BASE = 184500;
 const MEDICARE_RATE = 0.0145, ADDL_MEDICARE_RATE = 0.009;
 const ADDL_MEDICARE_THRESHOLD = 200000;
 const STATES = {"california": {"name": "California", "deduction": 5706, "brackets": [[0, 0.01], [11079, 0.02], [26264, 0.04], [41452, 0.06], [57542, 0.08], [72724, 0.093], [371479, 0.103], [445771, 0.113], [742953, 0.123], [1000000, 0.133]]}, "texas": {"name": "Texas", "deduction": 0, "brackets": []}, "new-york": {"name": "New York", "deduction": 8000, "brackets": [[0, 0.039], [8500, 0.044], [11700, 0.0515], [13900, 0.054], [80650, 0.059], [215400, 0.0685], [1077550, 0.0965], [5000000, 0.103], [25000000, 0.109]]}, "florida": {"name": "Florida", "deduction": 0, "brackets": []}, "pennsylvania": {"name": "Pennsylvania", "deduction": 0, "brackets": [[0, 0.0307]]}, "illinois": {"name": "Illinois", "deduction": 2925, "brackets": [[0, 0.0495]]}, "ohio": {"name": "Ohio", "deduction": 0, "brackets": [[0, 0.0], [26050, 0.0275]]}, "georgia": {"name": "Georgia", "deduction": 12000, "brackets": [[0, 0.0519]]}, "north-carolina": {"name": "North Carolina", "deduction": 12750, "brackets": [[0, 0.0399]]}, "michigan": {"name": "Michigan", "deduction": 5900, "brackets": [[0, 0.0425]]}, "new-jersey": {"name": "New Jersey", "deduction": 1000, "brackets": [[0, 0.014], [20000, 0.0175], [35000, 0.035], [40000, 0.05525], [75000, 0.0637], [500000, 0.0897], [1000000, 0.1075]]}, "virginia": {"name": "Virginia", "deduction": 8750, "brackets": [[0, 0.02], [3000, 0.03], [5000, 0.05], [17000, 0.0575]]}, "washington": {"name": "Washington", "deduction": 0, "brackets": []}, "arizona": {"name": "Arizona", "deduction": 13850, "brackets": [[0, 0.025]]}, "massachusetts": {"name": "Massachusetts", "deduction": 4400, "brackets": [[0, 0.05], [1083150, 0.09]]}};
+const NATIONAL_PERCENTILES = [[10, 11005], [20, 24054], [25, 30000], [30, 34001], [40, 43345], [50, 53010], [60, 65351], [70, 81361], [75, 93400], [80, 106500], [90, 155042], [95, 210351], [99, 450100]];
+const STATE_MEDIAN_HOUSEHOLD = {"california": 95521, "texas": 75780, "florida": 73311, "new-york": 82095, "pennsylvania": 73824, "illinois": 80306, "ohio": 67769, "georgia": 74632, "north-carolina": 70804, "michigan": 69183, "new-jersey": 99781, "virginia": 89931, "washington": 94605, "arizona": 77315, "massachusetts": 99858};
+
+function incomePercentile(gross) {
+  const points = [[0, 0]].concat(NATIONAL_PERCENTILES);
+  if (gross <= 0) return 0;
+  if (gross >= points[points.length - 1][1]) return 99;
+  for (let i = 0; i < points.length - 1; i++) {
+    const [p0, v0] = points[i], [p1, v1] = points[i + 1];
+    if (gross >= v0 && gross <= v1) {
+      const frac = v1 !== v0 ? (gross - v0) / (v1 - v0) : 0;
+      return p0 + frac * (p1 - p0);
+    }
+  }
+  return 99;
+}
 
 function bracketTax(taxable, brackets) {
   if (taxable <= 0 || !brackets.length) return 0;
@@ -211,6 +242,18 @@ function calc(defaultState) {
   document.getElementById('r-medicare').textContent = fmtUSD(r.medicare);
   document.getElementById('r-net-annual').textContent = fmtUSD(r.netAnnual);
   document.getElementById('r-net-monthly').textContent = fmtUSD(r.netMonthly);
+
+  const pct = incomePercentile(salary);
+  document.getElementById('r-percentile').textContent =
+    (salary >= NATIONAL_PERCENTILES[NATIONAL_PERCENTILES.length - 1][1] ? 'Top 1%' : 'Top ' + Math.round(100 - pct) + '%')
+    + ' of individual earners nationwide';
+
+  const median = STATE_MEDIAN_HOUSEHOLD[stateKey];
+  const diffPct = ((salary - median) / median) * 100;
+  const state = STATES[stateKey];
+  document.getElementById('r-household').textContent =
+    fmtUSD(salary) + ' is ' + Math.abs(Math.round(diffPct)) + '% ' + (diffPct >= 0 ? 'above' : 'below')
+    + ' the ' + state.name + ' median household income (' + fmtUSD(median) + ')';
 }
 
 </script>
