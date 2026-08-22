@@ -8,7 +8,7 @@ CONTACT_EMAIL with a real contact address.
 """
 
 SITE_NAME = "US Paycheck Calculator"
-CONTACT_EMAIL = "contact@yourdomain.com"
+CONTACT_EMAIL = "usstatewages@gmail.com"
 
 ADSENSE_CLIENT = "ca-pub-5607384951754093"
 
