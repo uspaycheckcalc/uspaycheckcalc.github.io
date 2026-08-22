@@ -177,7 +177,8 @@ def calculator_box_html(default_state_key, fixed_state=False):
 MAP_TILE = 40
 MAP_GAP = 4
 MAP_PITCH = MAP_TILE + MAP_GAP
-MAP_COLORS = {"none": "#16a34a", "flat": "var(--primary)", "progressive": "#7c3aed"}
+MAP_COLORS = {"none": "#bbf7d0", "flat": "#bfdbfe", "progressive": "#ddd6fe"}
+MAP_TEXT_COLORS = {"none": "#166534", "flat": "#1e40af", "progressive": "#5b21b6"}
 MAP_LEGEND_LABELS = {"none": "No state income tax", "flat": "Flat tax rate", "progressive": "Progressive (bracketed) tax"}
 
 
@@ -187,11 +188,12 @@ def us_map_svg():
         state = STATES[key]
         x, y = m["col"] * MAP_PITCH, m["row"] * MAP_PITCH
         fill = MAP_COLORS[state["type"]]
+        text_fill = MAP_TEXT_COLORS[state["type"]]
         tiles.append(
             f'<a href="{state_slug(key)}"><g><title>{state["name"]}: {MAP_LEGEND_LABELS[state["type"]]}</title>'
             f'<rect x="{x}" y="{y}" width="{MAP_TILE}" height="{MAP_TILE}" rx="6" fill="{fill}"></rect>'
             f'<text x="{x + MAP_TILE / 2:.0f}" y="{y + MAP_TILE / 2 + 4:.0f}" text-anchor="middle" '
-            f'font-size="11" font-weight="700" fill="#ffffff">{m["abbr"]}</text></g></a>'
+            f'font-size="11" font-weight="700" fill="{text_fill}">{m["abbr"]}</text></g></a>'
         )
 
     width = (max(m["col"] for m in MAP_STATES.values()) + 1) * MAP_PITCH - MAP_GAP
@@ -263,14 +265,14 @@ def index_html():
 
   {calculator_box_html("california")}
 
-  <h2>All 50 states</h2>
-  <p>Click any state for its paycheck calculator and common salary breakdowns.</p>
-  {us_map_svg()}
-
   <h2>Popular states</h2>
   <ul class="division-list">
   {state_links}
   </ul>
+
+  <h2>All 50 states</h2>
+  <p>Click any state for its paycheck calculator and common salary breakdowns.</p>
+  {us_map_svg()}
 
   <div class="explain">
     <h2>What's included</h2>
