@@ -6,6 +6,9 @@ from static_pages import ADSENSE_CLIENT
 OUTPUT_DIR = generate.OUTPUT_DIR
 BASE_URL = generate.BASE_URL
 
+# IndexNow key. The matching docs/<key>.txt must be live before a ping is accepted.
+INDEXNOW_KEY = "76d6dde281440a0e9d4cae208a03d913"
+
 
 def build_ads_txt():
     pub_id = ADSENSE_CLIENT.replace("ca-pub-", "pub-")
@@ -28,6 +31,12 @@ def build_robots_txt():
     print("robots.txt written")
 
 
+def build_indexnow_key():
+    with open(os.path.join(OUTPUT_DIR, f"{INDEXNOW_KEY}.txt"), "w", encoding="utf-8") as f:
+        f.write(INDEXNOW_KEY)
+    print("indexnow key file written")
+
+
 def build_sitemap():
     urls = [
         f"{BASE_URL}/{fname}"
@@ -48,6 +57,7 @@ def main():
     generate.main()
     build_ads_txt()
     build_robots_txt()
+    build_indexnow_key()
     build_sitemap()
 
 
