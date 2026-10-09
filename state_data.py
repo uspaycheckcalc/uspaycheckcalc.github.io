@@ -354,3 +354,20 @@ MAP_STATES = {
     "wisconsin": {"abbr": "WI", "col": 5, "row": 2},
     "wyoming": {"abbr": "WY", "col": 3, "row": 2},
 }
+
+
+# States that do not follow the federal treatment of pre-tax payroll contributions. The calculator
+# uses this to avoid overstating the benefit of a 401(k) or HSA in these states - the deduction that
+# works federally does not necessarily work on the state return.
+#
+#   taxes_401k - elective 401(k) deferrals are still subject to state income tax
+#   taxes_hsa  - HSA contributions are still subject to state income tax (state does not conform to
+#                the federal HSA rules)
+#
+# FICA is unaffected either way: 401(k) deferrals are always subject to Social Security and Medicare,
+# and HSA contributions made through a cafeteria plan are always exempt from both.
+PRETAX_NONCONFORMITY = {
+    "pennsylvania": {"taxes_401k": True},
+    "california": {"taxes_hsa": True},
+    "new-jersey": {"taxes_hsa": True},
+}

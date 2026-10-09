@@ -1,14 +1,14 @@
 """
-Static pages required for AdSense review (privacy policy / about / contact), plus shared
-theme parts (style/header/footer/GA+AdSense snippet), mirroring the krcalctools project structure.
+Static pages required for AdSense review (privacy policy / about), plus shared theme parts
+(style/header/footer/GA+AdSense snippet), mirroring the krcalctools project structure.
 
-TODO before going live: replace GA_SNIPPET's G-XXXXXXXXXX and ADSENSE_CLIENT's ca-pub-XXXX
-with the real IDs once the GA4 property and AdSense site are created, and replace
-CONTACT_EMAIL with a real contact address.
+There is deliberately no contact page and no published email address: the site is run by one
+person and publishing a personal address on a programmatic-SEO site invites more spam than it is
+worth. Corrections go through the repository instead - see the About page.
 """
 
 SITE_NAME = "US Paycheck Calculator"
-CONTACT_EMAIL = "usstatewages@gmail.com"
+REPO_URL = "https://github.com/uspaycheckcalc/uspaycheckcalc.github.io"
 
 ADSENSE_CLIENT = "ca-pub-5607384951754093"
 
@@ -27,9 +27,9 @@ GA_SNIPPET = f"""<!-- Google tag (gtag.js) -->
 FOOTER_NAV = """
   <div class="footer-nav">
     <a href="index.html">Home</a>
+    <a href="guides.html">Guides</a>
     <a href="about.html">About</a>
     <a href="privacy.html">Privacy Policy</a>
-    <a href="contact.html">Contact</a>
   </div>
 """
 
@@ -52,6 +52,7 @@ SITE_HEADER = """
     <a href="index.html" class="brand">\U0001F4B5 US Paycheck Calculator</a>
     <nav class="site-nav">
       <a href="index.html">Home</a>
+      <a href="guides.html">Guides</a>
       <a href="about.html">About</a>
     </nav>
   </header>
@@ -59,10 +60,18 @@ SITE_HEADER = """
 
 SITE_STYLE = """
   :root {
-    --primary: #2563eb; --primary-dark: #1d4ed8; --bg: #f8f9fc; --card-bg: #ffffff;
-    --text: #111827; --muted: #6b7280; --border: #e5e7eb;
-    --warn-bg: #fff7ed; --warn-text: #9a3412;
+    /* Dark is the default theme for these sites. Every colour below is a token: rules must not
+       hardcode hex values, or the next theme change has to hunt through the stylesheet again. */
+    --primary: #60a5fa; --primary-dark: #93c5fd; --on-primary: #0b1220;
+    --bg: #0f1218; --card-bg: #171b23; --input-bg: #10141b;
+    --text: #e6e8ec; --body-dim: #c4cad4; --muted: #99a2b1; --border: #2b323e;
+    --subtle-bg: #151a22; --nav-hover-bg: #1f2632; --accent-soft: #1a2030;
+    --hero-grad-a: #182032; --hero-grad-b: #1f1c30;
+    --warn-bg: #2a1d10; --warn-border: #7c5312; --warn-text: #fbbf24; --warn-strong: #fcd34d;
+    --good-bg: #0f2419; --good-border: #166534; --good-text: #4ade80;
+    --track-bg: #222935;
   }
+  html { color-scheme: dark; }
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -77,7 +86,7 @@ SITE_STYLE = """
   .site-header .brand { font-weight: 800; font-size: 17px; color: var(--text); text-decoration: none; }
   .site-nav { display: flex; gap: 2px; flex-wrap: wrap; }
   .site-nav a { font-size: 13px; color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 999px; }
-  .site-nav a:hover { background: #eef2ff; color: var(--primary); }
+  .site-nav a:hover { background: var(--nav-hover-bg); color: var(--primary); }
 
   .hero-icon { margin-bottom: 4px; }
   .hero-icon.small { margin-bottom: 2px; }
@@ -91,20 +100,20 @@ SITE_STYLE = """
 
   .calc-box {
     background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
-    padding: 22px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    padding: 22px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.45);
   }
   .field { margin-bottom: 14px; }
   .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; font-weight: 500; }
   .field input, .field select {
     width: 100%; box-sizing: border-box; padding: 11px 13px; font-size: 16px;
-    border: 1px solid var(--border); border-radius: 10px; background: #fff;
+    border: 1px solid var(--border); border-radius: 10px; background: var(--input-bg); color: var(--text);
   }
   .field input:focus, .field select:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
 
   .result { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border); }
   .result.compare { border-top: none; padding-top: 0; margin-top: 6px; }
   .compare-row {
-    font-size: 13px; color: var(--muted); background: #f5f3ff; border-radius: 8px;
+    font-size: 13px; color: var(--muted); background: var(--accent-soft); border-radius: 8px;
     padding: 9px 12px; margin-top: 8px; line-height: 1.5;
   }
   .result-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 14px; }
@@ -114,7 +123,7 @@ SITE_STYLE = """
   }
 
   .headline {
-    background: linear-gradient(135deg,#eef2ff,#f5f3ff); border-radius: 16px;
+    background: linear-gradient(135deg,var(--hero-grad-a),var(--hero-grad-b)); border-radius: 16px;
     padding: 26px; text-align: center; margin: 20px 0;
   }
   .headline .amount { font-size: 34px; font-weight: 800; color: var(--primary); }
@@ -122,16 +131,16 @@ SITE_STYLE = """
   table.rule, table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
   table.rule th, table.rule td, table th, table td { border: 1px solid var(--border); padding: 9px 10px; text-align: left; }
   table.rule td.num, table td.num { text-align: right; }
-  th { color: var(--muted); font-weight: 600; background: #fafafa; }
+  th { color: var(--muted); font-weight: 600; background: var(--subtle-bg); }
 
   .source { font-size: 12px; color: var(--muted); }
   .source a { color: var(--muted); }
   .disclaimer {
-    margin-top: 32px; padding: 14px 16px; background: #fafafa; border-radius: 10px;
+    margin-top: 32px; padding: 14px 16px; background: var(--subtle-bg); border-radius: 10px;
     font-size: 12px; color: var(--muted); line-height: 1.6;
   }
 
-  .explain { margin-top: 26px; font-size: 14px; color: #374151; }
+  .explain { margin-top: 26px; font-size: 14px; color: var(--body-dim); }
   .explain h2 { font-size: 15px; }
   .steps { margin: 12px 0 0; padding-left: 20px; }
   .steps li { margin-bottom: 8px; }
@@ -163,6 +172,21 @@ SITE_STYLE = """
   }
   .footer-nav a { color: var(--muted); text-decoration: none; }
   .footer-nav a:hover { color: var(--primary); }
+
+  .lede { font-size: 17px; color: var(--muted); border-left: 3px solid var(--primary); padding-left: 14px; }
+  .callout { border-left: 3px solid var(--primary); }
+  .payroll-list { line-height: 1.7; padding-left: 20px; }
+  .payroll-list li { margin-bottom: 10px; }
+  .guide-list { list-style: none; padding: 0; }
+  .guide-list li {
+    padding: 14px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px;
+  }
+  .guide-list a { text-decoration: none; }
+  .guide-desc { font-size: 14px; color: var(--muted); }
+  .guide-nav { margin-top: 32px; font-size: 14px; }
+  details.pretax { margin: 14px 0; font-size: 14px; }
+  details.pretax summary { cursor: pointer; color: var(--primary); padding: 6px 0; }
+  details.pretax .field { margin-top: 10px; }
 """
 
 
@@ -181,7 +205,7 @@ def about_html():
 {SITE_HEADER}
   <h1>About This Site</h1>
   <p>{SITE_NAME} estimates take-home (net) pay after federal income tax, FICA (Social Security
-  and Medicare), and state income tax for the 15 most populous US states.</p>
+  and Medicare), and state income tax for all 50 US states.</p>
 
   <h2>How the estimate is calculated</h2>
   <p>Figures assume a single filer taking the standard deduction, with no dependents, credits, or
@@ -192,6 +216,13 @@ def about_html():
   <h2>Need an exact number?</h2>
   <p>This site provides estimates for planning purposes only. For your exact withholding, check a
   recent pay stub or consult your employer's payroll department or a licensed tax professional.</p>
+
+  <h2>Corrections</h2>
+  <p>Tax rules change, and a figure that was right last year may not be right now. The tax data and
+  the code that generates every page on this site are public, so a wrong number is something anyone
+  can point at directly rather than report into a void. If you spot one, open an issue on the
+  <a href="{REPO_URL}/issues" rel="noopener">project repository</a> and it will be visible to
+  everyone else reading the same page.</p>
 
 {FOOTER_NAV}
 </body>
@@ -230,33 +261,13 @@ def privacy_html():
   <p>This site displays ads served by Google AdSense. Google may use cookies to serve ads based on
   your prior visits to this or other websites. See Google's advertising policies for details.</p>
 
-  <h2>4. Contact</h2>
-  <p>Questions about this privacy policy can be sent to <a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a>.</p>
+  <h2>4. Questions About This Policy</h2>
+  <p>This site is operated by an independent publisher and has no staffed support channel. If
+  something in this policy is unclear or appears out of date, the quickest route is to raise it on
+  the project's public repository, linked from the About page.</p>
 
   <h2>5. Effective Date</h2>
   <p>This policy is effective as of August 22, 2026.</p>
-
-{FOOTER_NAV}
-</body>
-</html>"""
-
-
-def contact_html():
-    return f"""<!doctype html>
-<html lang="en">
-<head>
-{GA_SNIPPET}
-<meta charset="utf-8">
-<title>Contact - {SITE_NAME}</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-{FAVICON}
-<style>{SITE_STYLE}</style>
-</head>
-<body>
-{SITE_HEADER}
-  <h1>Contact</h1>
-  <p>Questions, corrections, or advertising/partnership inquiries can be sent to the email below.</p>
-  <p><a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a></p>
 
 {FOOTER_NAV}
 </body>

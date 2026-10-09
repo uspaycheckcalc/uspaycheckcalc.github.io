@@ -1,4 +1,4 @@
-"""Full site build: generate all pages + ads.txt + sitemap.xml."""
+"""Full site build: generate all pages + ads.txt + robots.txt + sitemap.xml."""
 import os
 import generate
 from static_pages import ADSENSE_CLIENT
@@ -13,6 +13,19 @@ def build_ads_txt():
     with open(os.path.join(OUTPUT_DIR, "ads.txt"), "w", encoding="utf-8") as f:
         f.write(content)
     print("ads.txt written")
+
+
+def build_robots_txt():
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "",
+        f"Sitemap: {BASE_URL}/sitemap.xml",
+        "",
+    ]
+    with open(os.path.join(OUTPUT_DIR, "robots.txt"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+    print("robots.txt written")
 
 
 def build_sitemap():
@@ -34,6 +47,7 @@ def build_sitemap():
 def main():
     generate.main()
     build_ads_txt()
+    build_robots_txt()
     build_sitemap()
 
 

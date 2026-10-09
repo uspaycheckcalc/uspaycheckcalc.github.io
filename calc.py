@@ -6,7 +6,7 @@ precedent as the KR salary-calculator project). See federal_data.py / state_data
 underlying rates and their sources - both must be refreshed annually.
 """
 import federal_data
-from state_data import STATES
+from state_data import STATES, PRETAX_NONCONFORMITY
 from percentile_data import NATIONAL_INCOME_PERCENTILES, STATE_MEDIAN_HOUSEHOLD_INCOME
 
 
@@ -24,24 +24,46 @@ def bracket_tax(taxable, brackets):
     return tax
 
 
-def federal_tax(gross_annual):
-    taxable = max(gross_annual - federal_data.STANDARD_DEDUCTION, 0)
+def federal_tax(gross_annual, pretax_401k=0, pretax_hsa=0):
+    """Federal income tax. Both 401(k) deferrals and HSA contributions reduce federal taxable wages."""
+    wages = max(gross_annual - pretax_401k - pretax_hsa, 0)
+    taxable = max(wages - federal_data.STANDARD_DEDUCTION, 0)
     return bracket_tax(taxable, federal_data.BRACKETS)
 
 
-def fica(gross_annual):
-    ss = min(gross_annual, federal_data.SOCIAL_SECURITY_WAGE_BASE) * federal_data.SOCIAL_SECURITY_RATE
-    medicare = gross_annual * federal_data.MEDICARE_RATE
-    if gross_annual > federal_data.ADDITIONAL_MEDICARE_THRESHOLD_SINGLE:
-        medicare += (gross_annual - federal_data.ADDITIONAL_MEDICARE_THRESHOLD_SINGLE) * federal_data.ADDITIONAL_MEDICARE_RATE
+def fica(gross_annual, pretax_hsa=0):
+    """
+    Social Security and Medicare.
+
+    401(k) deferrals are NOT subtracted here: elective deferrals are exempt from income tax but
+    still fully subject to FICA. HSA contributions made through a cafeteria plan are exempt from
+    both, so they do reduce FICA wages.
+    """
+    fica_wages = max(gross_annual - pretax_hsa, 0)
+    ss = min(fica_wages, federal_data.SOCIAL_SECURITY_WAGE_BASE) * federal_data.SOCIAL_SECURITY_RATE
+    medicare = fica_wages * federal_data.MEDICARE_RATE
+    if fica_wages > federal_data.ADDITIONAL_MEDICARE_THRESHOLD_SINGLE:
+        medicare += (fica_wages - federal_data.ADDITIONAL_MEDICARE_THRESHOLD_SINGLE) * federal_data.ADDITIONAL_MEDICARE_RATE
     return ss, medicare
 
 
-def state_tax(gross_annual, state_key):
+def state_tax(gross_annual, state_key, pretax_401k=0, pretax_hsa=0):
+    """
+    State income tax, honouring the states that do not conform to the federal pre-tax treatment
+    (see PRETAX_NONCONFORMITY) - e.g. Pennsylvania still taxes 401(k) deferrals, California and
+    New Jersey still tax HSA contributions.
+    """
     state = STATES[state_key]
     if state["brackets"] is None:
         return 0
-    taxable = max(gross_annual - state["deduction"], 0)
+    nonconf = PRETAX_NONCONFORMITY.get(state_key, {})
+    excluded = 0
+    if not nonconf.get("taxes_401k"):
+        excluded += pretax_401k
+    if not nonconf.get("taxes_hsa"):
+        excluded += pretax_hsa
+    wages = max(gross_annual - excluded, 0)
+    taxable = max(wages - state["deduction"], 0)
     return bracket_tax(taxable, state["brackets"])
 
 
@@ -66,16 +88,22 @@ def household_income_comparison(gross_annual, state_key):
     return median, pct_diff
 
 
-def calculate(gross_annual: float, state_key: str) -> dict:
-    fed_tax = federal_tax(gross_annual)
-    ss, medicare = fica(gross_annual)
-    st_tax = state_tax(gross_annual, state_key)
+def calculate(gross_annual: float, state_key: str, pretax_401k: float = 0, pretax_hsa: float = 0) -> dict:
+    fed_tax = federal_tax(gross_annual, pretax_401k, pretax_hsa)
+    ss, medicare = fica(gross_annual, pretax_hsa)
+    st_tax = state_tax(gross_annual, state_key, pretax_401k, pretax_hsa)
 
     total_tax = fed_tax + ss + medicare + st_tax
-    net_annual = gross_annual - total_tax
+    pretax_total = pretax_401k + pretax_hsa
+    # Take-home excludes money diverted to the 401(k)/HSA: it is still the employee's money, but it
+    # does not arrive in the checking account, so counting it as take-home would be misleading.
+    net_annual = gross_annual - total_tax - pretax_total
 
     return {
         "gross_annual": round(gross_annual),
+        "pretax_401k": round(pretax_401k),
+        "pretax_hsa": round(pretax_hsa),
+        "pretax_total": round(pretax_total),
         "federal_tax": round(fed_tax),
         "social_security": round(ss),
         "medicare": round(medicare),
